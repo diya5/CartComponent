@@ -424,63 +424,6 @@ class Calculator
         
         return $maxItemQtys;
     }
-    
-    /**
-     *
-     */
-    public function getMaxAmounts($discount, $currentAmount, $itemAmounts, $shipmentAmounts)
-    {
-        $maxAmounts = array(
-            'items'     => array(),
-            'shipments' => array(),
-        );
-        
-        if ($discount->hasItems() && count($itemAmounts) > 0) {
-            foreach($itemAmounts as $itemKey => $itemAmount) {
-            
-                if (!isset($maxAmounts['items'][$itemKey])) {
-                    $maxAmounts['items'][$itemKey] = 0;
-                }
-                
-                if (!$currentAmount) {
-                    continue; //want to make sure all items have a value, even if zero
-                }
-                
-                if ($currentAmount >= $itemAmount) {
-                    $currentAmount -= $itemAmount;
-                    $maxAmounts['items'][$itemKey] += $itemAmount;
-                } else {
-                    $diff = $itemAmount - $currentAmount;
-                    $currentAmount -= $diff;
-                    $maxAmounts['items'][$itemKey] += $diff;
-                }
-            }
-        }
-        
-        if ($discount->hasShipments() && count($shipmentAmounts) > 0) {
-            foreach($shipmentAmounts as $shipmentKey => $shipmentAmount) {
-            
-                if (!isset($maxAmounts['shipments'][$shipmentKey])) {
-                    $maxAmounts['shipments'][$shipmentKey] = 0;
-                }
-                
-                if (!$currentAmount) {
-                    continue; //want to make sure all shipments have a value, even if zero
-                }
-                
-                if ($currentAmount >= $shipmentAmount) {
-                    $currentAmount -= $shipmentAmount;
-                    $maxAmounts['shipments'][$shipmentKey] += $shipmentAmount;
-                } else {
-                    $diff = $shipmentAmount - $currentAmount;
-                    $currentAmount -= $diff;
-                    $maxAmounts['shipments'][$shipmentKey] += $diff;
-                }
-            }
-        }
-        
-        return $maxAmounts;
-    }
 
     /**
      * Get discounted item total
