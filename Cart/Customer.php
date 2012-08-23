@@ -2,7 +2,7 @@
 
 class Customer 
 {
-	/**
+    /**
      * @var integer $id
      */
     protected $_id;

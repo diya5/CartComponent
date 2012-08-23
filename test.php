@@ -51,15 +51,13 @@ $shipmentA->setId(1)
           ->setPrice('6.95')
           ->setIsDiscountable(true)
           ->setIsTaxable(true)
-          ->addItem($itemA)
-          ->addItem($itemB)
           ;
 
 $cart = new Cart();
-$cart->addItem($itemA)
-     ->addItem($itemB)
-     ->addItem($itemC)
-     ->addShipment($shipmentA)
+$cart->setItem($itemA)
+     ->setItem($itemB)
+     ->setItem($itemC)
+     ->setShipment($shipmentA)
      ->setIncludeTax(true)
      ->setTaxRate('0.07025')
      ->setId(3)
@@ -137,7 +135,7 @@ $discountA->setId(1)
           ->setAs(Discount::$asPercent)
           ->setIsPreTax(true)
           ->setTo(Discount::$toSpecified) //not _all_ shipments
-          ->setTargetConditionCompare($compare1) //only target criteria, no criteria before
+          ->setTargetConditionCompare($compare1) //only target conditions, no pre-conditions
           ;
 
 // Buy 2 ToothBrush, Get 1 ToothPaste free
@@ -146,9 +144,10 @@ $discountB->setId(2)
           ->setName('Buy 2 ToothBrush, Get 1 ToothPaste free')
           ->setTo(Discount::$toSpecified)
           ->setValue('1.00')
+          ->setMaxQty(1)
           ->setAs(Discount::$asPercent)
           ->setIsPreTax(true)
-          ->setCriteriaConditionCompare($compare3)
+          ->setPreConditionCompare($compare3)
           ->setTargetConditionCompare($compare2)
           ;
 
@@ -156,25 +155,24 @@ $discountB->setId(2)
 //(this example is set up to validate)
 
 if ($compare1->isValid($shipmentA)) {
-    $discountA->addShipment($shipmentA);
-    $cart->addDiscount($discountA);
+    $discountA->setShipment($shipmentA);
+    $cart->setDiscount($discountA);
 }
 
 //check pre-conditions and target conditions
 if ($compare3->isValid($itemA) && $compare2->isValid($itemB)) {
-    $discountB->addItem($itemB);
-    $cart->addDiscount($discountB);
+    $discountB->setItem($itemB);
+    $cart->setDiscount($discountB);
 }
 
-//echo print_r($cart->toArray(), 1);
-echo "\n{$cart}\n";
+
 echo print_r($cart->getTotals(), 1);
 echo print_r($cart->getDiscountedTotals(), 1);
+echo print_r($cart->getDiscountGrid());
 
 $cart2 = new Cart();
 $cart2->importJson($cart->toJson());
 
-//echo print_r($cart2->toArray(), 1);
 echo "\n{$cart2}\n";
 echo print_r($cart2->getTotals(), 1);
 echo print_r($cart2->getDiscountedTotals(), 1);

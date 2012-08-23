@@ -63,17 +63,22 @@ class Cart
      *  the sum of taxable items/shipments; which reduces the taxable subtotal,
      *  and ultimately the amount of tax being paid for
      *
-     * @var boolean
+     * @var bool
      */
     protected $_discountTaxableLast; //from config
     
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->reset();
     }
 
     /**
-     * Retrieve calculator
+     * Retrieve calculator with current Cart instance
+     *
+     * @return Calculator
      */
     public function getCalculator()
     {
@@ -81,7 +86,9 @@ class Cart
     }
 
     /**
-     * Get all totals from calculator
+     * Get current cart totals from calculator
+     *
+     * @return array
      */
     public function getTotals()
     {
@@ -89,7 +96,19 @@ class Cart
     }
 
     /**
-     * Get all totals from calculator
+     * Get item/shipment discounts from calculator
+     *
+     * @return array
+     */
+    public function getDiscountGrid()
+    {
+        return $this->getCalculator()->getDiscountGrid();
+    }
+
+    /**
+     * Get current discounted cart totals from calculator
+     *
+     * @return array
      */
     public function getDiscountedTotals()
     {
@@ -97,7 +116,9 @@ class Cart
     }
 
     /**
+     * Enable string casting for this class
      *
+     * @return string
      */
     public function __toString()
     {
@@ -105,7 +126,7 @@ class Cart
     }
 
     /**
-     * Export object data to json string.
+     * Export this cart as a json string
      *
      * @return string
      */
@@ -115,24 +136,28 @@ class Cart
     }
 
     /**
-     * Serialize object to array
+     * Export this cart as an array
+     *
+     * @return array
      */
     public function toArray()
     {
         return array(
-            'id'          => $this->getId(),
-            'customer'    => $this->getCustomer()->toArray(),
-            'items'       => $this->getItemsAsArray(),
-            'discounts'   => $this->getDiscountsAsArray(),
-            'shipments'   => $this->getShipmentsAsArray(),
-            'tax_rate'    => $this->getTaxRate(),
-            'include_tax' => $this->getIncludeTax(),
+            'id'                    => $this->getId(),
+            'customer'              => $this->getCustomer()->toArray(),
+            'items'                 => $this->getItemsAsArray(),
+            'discounts'             => $this->getDiscountsAsArray(),
+            'shipments'             => $this->getShipmentsAsArray(),
+            'tax_rate'              => $this->getTaxRate(),
+            'include_tax'           => $this->getIncludeTax(),
             'discount_taxable_last' => $this->getDiscountTaxableLast(),
         );
     }
 
     /**
+     * Export cart discounts as an associative array
      *
+     * @return array of Discounts
      */
     public function getDiscountsAsArray()
     {
@@ -146,7 +171,9 @@ class Cart
     }
 
     /**
+     * Export cart items as an associative array
      *
+     * @return array of Items
      */
     public function getItemsAsArray()
     {
@@ -160,7 +187,9 @@ class Cart
     }
 
     /**
+     * Export cart shipments as an associative array
      *
+     * @return array of Shipments
      */
     public function getShipmentsAsArray()
     {
@@ -175,7 +204,11 @@ class Cart
     
     /**
      * Import object data from json string.
+     * Note: Watch out for single index arrays becoming stdClass objects
      *
+     * @param string JSON
+     * @param bool
+     * @return Cart
      */
     public function importJson($json, $reset = true)
     {
@@ -210,7 +243,7 @@ class Cart
                 $itemJson = json_encode($item);
                 $item = new Item();
                 $item->importJson($itemJson);
-                $this->addItem($item);
+                $this->setItem($item);
             }
         }
 
@@ -220,10 +253,10 @@ class Cart
                 $tmpShipment = new Shipment();
                 if ($shipment instanceof stdClass) {
                     $tmpShipment->importStdClass($shipment);
-                    $this->addShipment($tmpShipment);
+                    $this->setShipment($tmpShipment);
                 } else if (is_array($shipment)) {
                     $tmpShipment->importJson(json_encode($shipment));
-                    $this->addShipment($tmpShipment);
+                    $this->setShipment($tmpShipment);
                 }
             }
         }
@@ -234,10 +267,10 @@ class Cart
                 $tmpDiscount = new Discount();
                 if ($discount instanceof stdClass) {
                     $tmpDiscount->importStdClass($discount);
-                    $this->addDiscount($tmpDiscount);
+                    $this->setDiscount($tmpDiscount);
                 } else if (is_array($tmpDiscount)) {
                     $tmpDiscount->importJson(json_encode($discount));
-                    $this->addDiscount($tmpDiscount);
+                    $this->setDiscount($tmpDiscount);
                 }
             }
         }
@@ -261,8 +294,9 @@ class Cart
     }
     
     /**
-     * Empty arrays
+     * Reset this cart instance
      *
+     * @return Cart
      */
     public function reset()
     {
@@ -281,12 +315,15 @@ class Cart
     }
 
     /**
+     * Validate a DiscountCondition against this Cart instance
      *
+     * @param DiscountCondition
+     * @return bool
      */
     public function isValidCondition(DiscountCondition $condition)
     {
         /*
-        Note: the Discount system isnt using this yet
+        Note: the Discount system is not using this yet
         */
         switch($condition->getSourceField()) {
             case 'total':
@@ -314,6 +351,8 @@ class Cart
 
     /**
      * Set decimal point precision
+     *
+     * @return Cart
      */
     public function setPrecision($precision)
     {
@@ -323,6 +362,8 @@ class Cart
 
     /**
      * Get decimal point precision
+     *
+     * @return int
      */
     public function getPrecision()
     {
@@ -340,6 +381,8 @@ class Cart
 
     /**
      * Get decimal point precision
+     *
+     * @return int
      */
     public function getCalculatorPrecision()
     {
@@ -347,7 +390,9 @@ class Cart
     }
 
     /**
-     * Mutator
+     * Set your Id on this cart
+     *
+     * @return mixed
      */
     public function setId($id)
     {
@@ -356,7 +401,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Get the Id set on this cart
+     *
+     * @return mixed
      */
     public function getId()
     {
@@ -364,7 +411,10 @@ class Cart
     }
 
     /**
-     * Mutator
+     * Update this cart's Customer
+     *
+     * @param Customer
+     * @return Cart
      */
     public function setCustomer(Customer $customer)
     {
@@ -373,7 +423,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Get the customer for this cart
+     *
+     * @return Customer
      */
     public function getCustomer()
     {
@@ -381,7 +433,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Get all items from this cart
+     *
+     * @return array of Items
      */
     public function getItems()
     {
@@ -390,17 +444,25 @@ class Cart
 
     /**
      * Retrieve Item
+     *
+     * @param string
+     * @return Item|false
      */
-    public function getItem($key)
+    public function getItem($key, $isKey = true)
     {
+        if (!$isKey) {
+            $key = Item::getKey($key);
+        }
         return isset($this->_items[$key]) ? $this->_items[$key] : false;
     }
 
     /**
-     * Set Item to Cart 
+     * Add/update Item in cart 
      *
+     * @param Item
+     * @return Cart
      */
-    public function addItem(Item $item)
+    public function setItem(Item $item)
     {
         $key = Item::getKey($item->getId());
         $this->_items[$key] = $item;
@@ -408,26 +470,44 @@ class Cart
     }
 
     /**
-     * Remove item from array
+     * Remove item from cart
      *
      * @param string|Item
-     * @return this
+     * @return Cart
      */
-    public function removeItem($key)
+    public function unsetItem($key, $isKey = true)
     {
         if ($key instanceof Item) {
             $key = Item::getKey($key->getId());
+        } else if (!$isKey) {
+            $key = Item::getKey($key);
         }
 
         if (isset($this->_items[$key])) {
             unset($this->_items[$key]);
+        }
+        
+        if ($this->hasDiscounts()) {
+            foreach($this->getDiscounts() as $discountKey => $discount) {
+                if ($discount->hasItem($key)) {
+                    $discount->unsetItem($key);
+                }
+                if ($discount->getTo() == Discount::$toSpecified &&
+                    !$discount->hasItems() &&
+                    !$discount->hasShipments()) {
+                    
+                    $this->unsetDiscount($key);
+                }
+            }
         }
 
         return $this;
     }
 
     /**
+     * Assert this cart instance has Items
      *
+     * @return bool
      */
     public function hasItems()
     {
@@ -438,10 +518,13 @@ class Cart
      * Assert Item exists
      *
      * @param string itemKey
-     * @return boolean hasItem
+     * @return bool hasItem
      */
-    public function hasItem($key)
+    public function hasItem($key, $isKey = true)
     {
+        if (!$isKey) {
+            $key = Item::getKey($key);
+        }
         return isset($this->_items[$key]);
     }
 
@@ -473,26 +556,71 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Return array of Discounts
+     *
+     * @return array
      */
-    public function getDiscounts()
+    public function getDiscounts($sortByPriority = false)
     {
-        return $this->_discounts;
+        if (!$sortByPriority) {
+            return $this->_discounts;
+        }
+
+        $discounts = array();
+        if (!count($this->_discounts)) {
+            return $this->_discounts;
+        }
+
+        $sortedKeys = $this->getPrioritizedDiscountKeys();
+        foreach($sortedKeys as $key => $priority) {
+            $discounts[$key] = $this->getDiscount($key);
+        }
+
+        return $discounts;
     }
 
     /**
-     * Retrieve Discount
+     * Get discount keys, sorted by priority
+     *
+     * @return array
      */
-    public function getDiscount($key)
+    public function getPrioritizedDiscountKeys()
     {
+        $priorities = array();
+        if (!$this->hasDiscounts()) {
+            return $priorities;
+        }
+
+        foreach($this->getDiscounts() as $key => $discount) {
+            $priorities[$key] = $discount->getPriority();
+        }
+
+        asort($priorities);
+        return $priorities;
+    }
+
+
+
+    /**
+     * Retrieve Discount
+     *
+     * @return Discount|false
+     */
+    public function getDiscount($key, $isKey = true)
+    {
+        if (!$isKey) {
+            $key = Discount::getKey($key);
+        }
         return isset($this->_discounts[$key]) ? $this->_discounts[$key] : false;
     }
 
     /**
      * Add Discount to cart
      *
+     * @param Discount
+     * @return Cart
      */
-    public function addDiscount(Discount $discount)
+    public function setDiscount(Discount $discount)
     {
         $key = Discount::getKey($discount->getId());
         $this->_discounts[$key] = $discount;
@@ -500,13 +628,17 @@ class Cart
     }
     
     /**
-     * Remove Discount from cart
+     * Remove Discount from cart by key, instance, or Id
      *
+     * @param string
+     * @return Cart
      */
-    public function removeDiscount($key)
+    public function unsetDiscount($key, $isKey = true)
     {
         if ($key instanceof Discount) {
             $key = Discount::getKey($key->getId());
+        } else if (!$isKey) {
+            $key = Discount::getKey($key);
         }
 
         if (isset($this->_discounts[$key])) {
@@ -517,18 +649,24 @@ class Cart
     }
 
     /**
-     * Assert Discount exists
+     * Assert Discount exists, by key or Id
      *
      * @param string discountKey
-     * @return boolean hasDiscount
+     * @param bool is key already prefixed
+     * @return bool hasDiscount
      */
-    public function hasDiscount($key)
+    public function hasDiscount($key, $isKey = true)
     {
+        if (!$isKey) {
+            $key = Discount::getKey($key);
+        }
         return isset($this->_discounts[$key]);
     }
 
     /**
+     * Assert this cart has discounts
      *
+     * @return bool
      */
     public function hasDiscounts()
     {
@@ -536,7 +674,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Return array of Shipments
+     *
+     * @return array
      */
     public function getShipments()
     {
@@ -544,10 +684,15 @@ class Cart
     }
 
     /**
-     * Retrieve Shipment
+     * Retrieve Shipment by key or Id
+     *
+     * @return Shipment|false
      */
-    public function getShipment($key)
+    public function getShipment($key, $isKey = true)
     {
+        if (!$isKey) {
+            $key = Shipment::getKey($key);
+        }
         return isset($this->_shipments[$key]) ? $this->_shipments[$key] : false;
     }
 
@@ -555,9 +700,9 @@ class Cart
      * Add Shipment to cart
      *
      * @param Shipment
-     * @return this
+     * @return Cart
      */
-    public function addShipment(Shipment $shipment)
+    public function setShipment(Shipment $shipment)
     {
         $key = Shipment::getKey($shipment->getId());
         $this->_shipments[$key] = $shipment;
@@ -565,20 +710,25 @@ class Cart
     }
 
     /**
-     * Remove Shipment from cart
+     * Remove Shipment from cart by key, instance or Id
      *
      * @param string key : associative array key
-     * @return this
+     * @param bool is key already prefixed
+     * @return Cart
      */
-    public function removeShipment($key)
+    public function unsetShipment($key, $isKey = true)
     {
         if ($key instanceof Shipment) {
             $key = Shipment::getKey($key->getId());
+        } else if (!$isKey) {
+            $key = Shipment::getKey($key);
         }
 
         if (isset($this->_shipments[$key])) {
             unset($this->_shipments[$key]);
         }
+
+        //TODO: remove from discounts
 
         return $this;
     }
@@ -587,15 +737,21 @@ class Cart
      * Assert Shipment exists
      *
      * @param string shipmentKey
-     * @return boolean hasShipment
+     * @param bool is key already prefixed
+     * @return bool hasShipment
      */
-    public function hasShipment($key)
+    public function hasShipment($key, $isKey = true)
     {
+        if (!$isKey) {
+            $key = Shipment::getKey($key);
+        }
         return isset($this->_shipments[$key]);
     }
 
     /**
+     * Assert this cart has shipments
      *
+     * @return bool
      */
     public function hasShipments()
     {
@@ -629,6 +785,8 @@ class Cart
 
     /**
      * Get Discounts before Tax
+     *
+     * @return array
      */
     public function getPreTaxDiscounts()
     {
@@ -650,6 +808,8 @@ class Cart
     /**
      * Get Discounts after Tax
      *  gets all discounts regardless of type
+     *
+     * @return array
      */
     public function getPostTaxDiscounts()
     {
@@ -666,7 +826,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Retrieve tax rate
+     *
+     * @return string formatted as a numerical float
      */
     public function getTaxRate()
     {
@@ -674,7 +836,10 @@ class Cart
     }
 
     /**
-     * Mutator
+     * Set tax rate
+     *
+     * @param string|float
+     * @return Cart
      */
     public function setTaxRate($taxRate)
     {
@@ -683,7 +848,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Retrieve whether tax is enabled
+     *
+     * @return bool
      */
     public function getIncludeTax()
     {
@@ -691,7 +858,9 @@ class Cart
     }
 
     /**
-     * Mutator
+     * Update whether tax is enabled
+     *
+     * @return Cart
      */
     public function setIncludeTax($includeTax)
     {
@@ -700,7 +869,9 @@ class Cart
     }
 
     /**
-     * Accessor
+     * Check whether taxable is discounted last
+     *
+     * @return bool
      */
     public function getDiscountTaxableLast()
     {
@@ -708,7 +879,9 @@ class Cart
     }
 
     /**
-     * Mutator
+     * Update whether taxable is discounted last
+     *
+     * @return Cart
      */
     public function setDiscountTaxableLast($discountTaxableLast)
     {
