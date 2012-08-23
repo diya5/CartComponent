@@ -349,14 +349,14 @@ class Discount
         //need this?
         if (count($toItems) > 0) {
             foreach($toItems as $key) {
-                $items[$key] = $key;
+                $items[] = $key;
             }
         }
 
         //need this?
         if (count($toShipments) > 0) {
             foreach($toShipments as $key) {
-                $shipments[$key] = $key;
+                $shipments[] = $key;
             }
         }//*/
 
