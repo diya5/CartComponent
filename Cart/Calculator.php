@@ -119,6 +119,29 @@ class Calculator
      */
     public function getDiscountGrid()
     {
+    
+        /*
+        General Plan here
+            Build arrays with discountable amounts. Assume the full quantity and amount
+                these will be subtracted from until:
+                    amount is zero
+                    item/shipment is 'stopped'
+                    discounts are done loopping
+            Loop all Discounts in order of priority
+                Figure out if the discount has applicable shipments, items
+                Initialize discount variables
+                    flat amount is known immediately
+                    sum of item qty is known
+                    portion for general discounts eg toItems, toShipments, is known
+                    max amount and qty is known
+                    zero counters for current amount and qty
+                Loop items
+                    check various stopper values:
+                        current amount and qty versus max amount and qty
+                        item is stopped from a previous discount
+                        
+        
+        //*/
 
         $itemDiscounts = array(); // d[itemKey][discountKey] = amount
         $shipmentDiscounts = array(); // d[shipmentKey][discountKey] = amount
@@ -163,74 +186,153 @@ class Calculator
                 
                 //get specified Shipments, if applicable
                 $discountShipments = ($discount->hasShipments()) ? $discount->getShipments() : array();
-
-                // possible to do some sort of proportional dividing?
+                
                 // fluid-like disperse for flat amounts, for generic amounts, percentage amounts
                 
                 // eg I have 4 toothbrushes, but can only get 2 at 50% off
                 // eg I get 4 of the most expensive toothbrushes, get 2 at 50% off, but maxed at 5 dollars
                 // eg I get 4 toothbrushes, totaling 12.50, but maxed at 4 dollars
-                // proportional idea
-                //  proportionally divide a 20.00 discount between total qty
-
+                
+                // Proportional uses
+                //  $_isPerItem=false, $_to=$toItems, $_as=$asFlat, portion=(flatAmount / qtySum)
+                //  $_isPerItem=true, use a function to give best discount, disperse qty's between items
+                
+                $flatAmount = ($discount->getAs() == Discount::$asFlat) ? $discount->getValue() : 0;
+                
+                //get portion based on qtySum
+                $portion = 0; //($discount->getIsProportional() && ) ?  : 0;
+                if ($discount->getTo() == Discount::$toItems && $discount->getIsProportional()) {
+                    //add up the quantities
+                    $qtySum = 0;
+                    if ($discountHasItems) {
+                        switch($discount->getTo()) {
+                            case Discount::$toItems:
+                                foreach($this->getCart()->getItems() as $itemKey => $item) {
+                                    if (!$item->getIsDiscountable()) {
+                                        continue;
+                                    }
+                                    $qtySum += $item->getQty();
+                                }
+                                break;
+                            case Discount::$toSpecified:
+                                foreach($discount->getItems() as $itemKey) {
+                                    $qtySum += $this->getCart()->getItem($itemKey)->getQty();
+                                }
+                                break;
+                            default:
+                                //no-op
+                                break;
+                        }
+                    }
+                    
+                    if ($qtySum > 0) {
+                        $portion = $this->currency($flatAmount / $qtySum);
+                    }
+                }
                 
                 //max amount for the whole discount
                 $maxAmount = ($discount->getMaxAmount() > 0) ? $discount->getMaxAmount() : 0;
                 
-                //multiply maxQty by price of Item/Shipment, to get the maxAmount
-                //what about multiple items?
-                // 3*2.25 + 3*1.25 means we're multiplying by 6
+                //max quantity to discount
                 $maxQty = ($discount->getMaxQty() > 0) ? $discount->getMaxQty() : 0;
-                
-                // maxQty isPerItem flag : have maxQty for every item, or for all items
-                // maxAmount can work with maxQty
 
                 $currentAmount = 0; //add amounts to this, then compare to max amount
                 $currentQty = 0; //add amounts to this, then compare to max qty
                 
+                $maxItemQtys = array();
+                
                 if ($discountHasItems) {
                     foreach($itemAmounts as $itemKey => $itemAmount) {
 
-                        $item = $this->getCart()->getItem($itemKey);
-
+                        //skip the item if it isnt specified in a specific discount
                         if ($discount->getTo() == Discount::$toSpecified && 
                             !$discount->hasItem($itemKey)) {
                             continue;
                         }
                         
+                        //skip the item if it is stopped
                         if (isset($stopped[$itemKey])) {
                             continue;
                         }
                         
-                        $unitDiscountAmount = 0;
-                        if ($discount->getAs() == Discount::$asFlat) {
-                            $unitDiscountAmount = $this->currency($discount->getValue());
-                        } else {
-                            $unitDiscountAmount = $this->currency($discount->getValue() * $item->getPrice());
+                        //break the loop if max qty is reached
+                        if ($maxQty > 0 && !$discount->getIsMaxPerItem() && $currentQty >= $maxQty) {
+                            break;
                         }
                         
-                        $calcQty = $item->getQty();
+                        //break the loop if max amount is reached
+                        if ($maxAmount > 0 && !$discount->getIsMaxPerItem() && $currentAmount >= $maxAmount) {
+                            break;
+                        }
                         
-                        //if we have maxQty or maxAmount, set maxAmount, figure out the calculating quantity
+                        $item = $this->getCart()->getItem($itemKey);
+                        
+                        //skip the item if it isnt discountable
+                        if (!$item->getIsDiscountable()) {
+                            continue;
+                        }
+                        
+                        //get single qty unit for percentage discounts
+                        $percentUnitAmount = 0;
+                        if ($discount->getAs() == Discount::$asPercent) {
+                            $percentUnitAmount = $this->currency($discount->getValue() * $item->getPrice());
+                        }
+                        
+                        //want maxItemQtys when:
+                        // 1. max qty has value, isMaxPerItem is false (doesnt matter if its flat or percentage)
+                        //   (dont need to divide qty if it applies to every item)
+                        // 2. discount is toItems, isProportional is true
+                        // note: it doesnt matter if it is flat or percentage
+                        
+                        //only retrieve once
+                        if (empty($maxItemQtys) && ($maxQty > 0 && !$discount->getIsMaxPerItem())) {
+                            $maxItemQtys = $this->getMaxItemQtys($discount, $currentQty, $itemAmounts, $flatAmount, $percentUnitAmount);
+                        }
+                        
+                        //handle maxQty logic, 
+                        //biggest difference here is if the maxQty applies to every item or not
                         if ($maxQty > 0) {
                             
-                            //
-                            $maxItemQtys = $this->getMaxItemQtys($discount, $currentQty, $unitDiscountAmount, $itemAmounts);
-                        
-                            //use no more than the max quantity, and no more than the item quantity
-                            //use maxQty if it applies to every item
-                            $calcQty = ($discount->getIsMaxPerItem()) ? $maxQty : min($maxItemQtys[$itemKey], $maxQty);
-                            
-                            //only care about running quantity if it applies to all items
-                            if (!$discount->getIsMaxPerItem()) {
+                            if ($discount->getIsMaxPerItem()) {
+                                
+                                //qty is not divided
+                                switch($discount->getAs()) {
+                                    case Discount::$asFlat:
+                                        $discountAmount = $this->currency($flatAmount);
+                                        break;
+                                    case Discount::$asPercent:
+                                        //use maxQty or itemQty, whichever is less
+                                        $calcQty = min($maxQty, $item->getQty());
+                                        $discountAmount = $this->currency($calcQty * $percentUnitAmount);
+                                        break;
+                                    default:
+                                        //no-op
+                                        break;
+                                }
+                                
+                            } else {
+                                
+                                //need to use our divided qty
+                                //multiply qty by flat amount or by single-qty percentage amount
+                                
+                                $calcQty = $maxItemQtys[$itemKey];
+                                
+                                switch($discount->getAs()) {
+                                    case Discount::$asFlat:
+                                        $discountAmount = $this->currency($calcQty * $flatAmount);
+                                        break;
+                                    case Discount::$asPercent:
+                                        $discountAmount = $this->currency($calcQty * $percentUnitAmount);
+                                        break;
+                                    default:
+                                        //no-op
+                                        break;
+                                }
+                                
                                 $currentQty += $calcQty;
                             }
-                            
-                            $maxAmount = $item->getPrice() * $calcQty;
                         }
                         
-                        $discountAmount = $this->currency($calcQty * $unitDiscountAmount);
-
                         //enforce max amount
                         if ($maxAmount > 0 && $discountAmount > $maxAmount) {
                         
@@ -300,7 +402,6 @@ class Calculator
                         if ($discount->getAs() == Discount::$asFlat) {
                             $discountAmount = $discount->getValue();
                         } else if ($discount->getAs() == Discount::$asPercent) {
-                            //if isCompound, shipmentAmount is currentAmount, else shipmentAmount is the price
                             $discountAmount = ($discount->getValue() * $shipmentAmount);
                         }
 
@@ -386,41 +487,62 @@ class Calculator
      * Get maximum number of non-partial quantities based on current quantity
      *  
      */
-    function getMaxItemQtys($discount, $currentQty, $discountAmount, $itemAmounts)
+    function getMaxItemQtys($discount, $currentQty, $itemAmounts, $flatAmount, $percentUnitAmount)
     {
         //ignore the maxAmount set on the discount
         //the discountAmount should only be quantity of 1
         
-        $maxQty = ($discount->getIsMaxPerItem()) ? $discount->getMaxQty() : $discount->getMaxQty() - $currentQty;
-        $maxAmount = min($discount->getMaxAmount(), $this->currency($discountAmount * $maxQty));
-
-        //subtract from this until it is zero, or discounts are fully applied
-        $remainingQty = $maxQty; 
+        $unitAmount = 0;
+        switch($discount->getAs()) {
+            case Discount::$asPercent:
+                $unitAmount = $percentUnitAmount;
+                break;
+            case Discount::$asFlat:
+                $unitAmount = $flatAmount;
+                break;
+            default:
+                //no-op
+                break;
+        }
+        
+        //subtract from remainingQty, dont touch maxQty
+        $maxQty = $remainingQty = $discount->getMaxQty() - $currentQty;
+        
+        //figure out max amount, whether we use it or not
+        $maxAmount = min($discount->getMaxAmount(), $this->currency($unitAmount * $maxQty)); 
         
         $items = $discount->getItems();
+        
         $maxItemQtys = array();
         
-        foreach($discount->getItems() as $key) {
+        foreach($discount->getItems() as $itemKey) {
             
             if (!$remainingQty) {
-                $maxItemQtys[$key] = 0;
+                $maxItemQtys[$itemKey] = 0;
                 continue;
             }
         
-            $fullMaxQty = floor($itemAmounts[$key] / $discountAmount);
-            $itemQty = $this->getCart()->getItem($key)->getQty();
+            //figure out the most first, regardless of current qty
+            $fullMaxQty = floor($itemAmounts[$itemKey] / $unitAmount);
             
-            $useQty = ($discount->getIsMaxPerItem()) ? min($fullMaxQty, $itemQty) : min($fullMaxQty, $remainingQty);
-            $maxItemQtys[$key] = $useQty;
+            //get the actual item qty
+            $itemQty = $this->getCart()->getItem($itemKey)->getQty();
+            
+            //figure out which value to use
+            $useQty = min(min($fullMaxQty, $remainingQty), $itemQty);
+            
+            $maxItemQtys[$itemKey] = $useQty;
+            
             $remainingQty -= $useQty;
         }
         
+        /* TODO revisit this
         if ($remainingQty > 0) {
             //grab a partial qty if possible
             asort($maxItemQtys);
             $tmpKey = reset($maxItemQtys);
             $maxItemQtys[$tmpKey]++;
-        }
+        }//*/
         
         return $maxItemQtys;
     }

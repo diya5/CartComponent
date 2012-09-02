@@ -38,7 +38,7 @@ class DiscountCondition
     protected $_sourceEntityField; //(config) Sku, ShippingMethod, Price, Zipcode, LastName
 
     /**
-     * @var string, get rid of this?
+     * @var string
      */
     protected $_sourceEntityFieldType; //(config) int, string, csv string/array, 
 
@@ -61,7 +61,7 @@ class DiscountCondition
     static $compareEqualsStrict = 'equals_strict';
 
     /**
-     *
+     * Constructor
      */
     public function __construct()
     {
@@ -77,7 +77,9 @@ class DiscountCondition
     }
 
     /**
+     * Reset/init default values
      *
+     * @return DiscountCondition
      */
     public function reset()
     {
@@ -94,7 +96,9 @@ class DiscountCondition
     }
 
     /**
+     * Enable string casting
      *
+     * @return string
      */
     public function __toString()
     {
@@ -102,7 +106,9 @@ class DiscountCondition
     }
 
     /**
+     * Export object array to json
      *
+     * @return string JSON
      */
     public function toJson()
     {
@@ -110,7 +116,9 @@ class DiscountCondition
     }
 
     /**
+     * Export object as array
      *
+     * @return array
      */
     public function toArray()
     {
@@ -127,7 +135,11 @@ class DiscountCondition
     }
 
     /**
+     * Import object from json string
      *
+     * @param string
+     * @param bool
+     * @return DiscountCondition
      */
     public function importJson($json, $reset = true)
     {
@@ -161,7 +173,11 @@ class DiscountCondition
     }
 
     /**
+     * Import object from stdClass
      *
+     * @param stdClass
+     * @param bool
+     * @return DiscountCondition
      */
     public function importStdClass($obj, $reset = true)
     {
@@ -191,7 +207,10 @@ class DiscountCondition
     }
 
     /**
+     * Import object from entity
      *
+     * @param stdClass
+     * @return DiscountCondition
      */
     public function importEntity($entity)
     {
@@ -280,7 +299,11 @@ class DiscountCondition
     }
 
     /**
+     * Explode and trim
      *
+     * @param string
+     * @param bool
+     * @return array
      */
     public function explodeCsv($str, $trim = true)
     {
@@ -300,7 +323,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getId()
     {
@@ -308,7 +331,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setId($id)
     {
@@ -317,7 +340,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getName()
     {
@@ -325,7 +348,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setName($name)
     {
@@ -334,7 +357,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getCompareType()
     {
@@ -342,7 +365,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setCompareType($compareType)
     {
@@ -352,7 +375,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getCompareValue()
     {
@@ -360,7 +383,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getIsNot()
     {
@@ -368,7 +391,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setIsNot($isNot)
     {
@@ -377,7 +400,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setCompareValue($compareValue)
     {
@@ -386,7 +409,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getSourceValue()
     {
@@ -394,7 +417,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setSourceValue($sourceValue)
     {
@@ -403,7 +426,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getSourceEntityType()
     {
@@ -411,7 +434,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setSourceEntityType($entityType)
     {
@@ -420,7 +443,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getSourceEntityField()
     {
@@ -428,7 +451,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setSourceEntityField($sourceEntityField)
     {
@@ -437,7 +460,7 @@ class DiscountCondition
     }
 
     /**
-     * Accessor
+     * Getter
      */
     public function getSourceEntityFieldType()
     {
@@ -445,7 +468,7 @@ class DiscountCondition
     }
 
     /**
-     * Mutator
+     * Setter
      */
     public function setSourceEntityFieldType($sourceEntityFieldType)
     {

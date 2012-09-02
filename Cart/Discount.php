@@ -81,6 +81,11 @@ class Discount
      * @var bool
      */
     protected $_isCompound;
+    
+    /**
+     * @var bool
+     */
+    protected $_isProportional;
 
     /**
      * @var float|string
@@ -205,6 +210,7 @@ class Discount
             'as'                => $this->getAs(),
             'to'                => $this->getTo(),
             'is_compound'       => $this->getIsCompound(),
+            'is_proportional'   => $this->getIsProportional(),
             'is_pre_tax'        => $this->getIsPreTax(),
             'is_auto'           => $this->getIsAuto(),
             'coupon_code'       => $this->getCouponCode(),
@@ -248,6 +254,7 @@ class Discount
         $value = isset($data['value']) ? $data['value'] : 0;
         $isPreTax = isset($data['is_pre_tax']) ? $data['is_pre_tax'] : false;
         $isCompound = isset($data['is_compound']) ? $data['is_compound'] : false;
+        $isProportional = isset($data['is_proportional']) ? $data['is_proportional'] : false;
 
         $startDatetime = ''; //TODO
         $endDatetime = ''; //TODO
@@ -298,6 +305,7 @@ class Discount
         $this->_maxAmount = $maxAmount;
         $this->_isMaxPerItem = $isMaxPerItem;
         $this->_isCompound = $isCompound;
+        $this->_isProportional = $isProportional;
         $this->_isPreTax = $isPreTax;
         $this->_isAuto = $isAuto;
         $this->_isStopper = $isStopper;
@@ -340,25 +348,24 @@ class Discount
 
         $value = isset($obj->value) ? $obj->value : 0;
         $isCompound = isset($obj->is_compound) ? $obj->is_compound : false;
+        $isProportional = isset($obj->is_proportional) ? $obj->is_proportional : false;
         $isPreTax = isset($obj->is_pre_tax) ? $obj->is_pre_tax : false;
         $toItems = isset($obj->items) ? $obj->items : array();
         $toShipments = isset($obj->shipments) ? $obj->shipments : array();
         $shipments = array();
         $items = array();
         
-        //need this?
         if (count($toItems) > 0) {
             foreach($toItems as $key) {
                 $items[] = $key;
             }
         }
 
-        //need this?
         if (count($toShipments) > 0) {
             foreach($toShipments as $key) {
                 $shipments[] = $key;
             }
-        }//*/
+        }
 
         $preConditionObj = isset($obj->pre_conditions) ? $obj->pre_conditions : new stdClass();
         $targetConditionObj = isset($obj->target_conditions) ? $obj->target_conditions : new stdClass();
@@ -396,6 +403,8 @@ class Discount
         $this->_value = $value;
         $this->_maxQty = $maxQty;
         $this->_maxAmount = $maxAmount;
+        $this->_isCompound = $isCompound;
+        $this->_isProportional = $isProportional;
         $this->_isMaxPerItem = $isMaxPerItem;
         $this->_isPreTax = $isPreTax;
         $this->_isAuto = $isAuto;
@@ -447,22 +456,18 @@ class Discount
         $this->_as = $as;
         $this->_to = $to;
         $this->_value = $value;
-
         $this->_maxQty = $maxQty;
         $this->_maxAmount = $maxAmount;
         $this->_isMaxPerItem = $isMaxPerItem;
-
         $this->_isCompound = $isCompound;
+        $this->_isProportional = $isProportional;
         $this->_isPreTax = $isPreTax;
         $this->_isAuto = $isAuto;
-
         $this->_isStopper = $isStopper;
         $this->_priority = $priority;
-
         $this->_couponCode = $couponCode;
         $this->_items = $toItems;
         $this->_shipments = $toShipments;
-
         $this->_startDatetime = $startDatetime;
         $this->_endDatetime = $endDatetime;
         
@@ -494,6 +499,7 @@ class Discount
         $this->_maxAmount = 0;
         $this->_isMaxPerItem = false;
         $this->_isCompound = false;
+        $this->_isProportional = false;
         $this->_isPreTax = false;
         $this->_isAuto = false;
         $this->_couponCode = '';
@@ -726,6 +732,30 @@ class Discount
     public function setIsCompound($isCompound)
     {
         $this->_isCompound = $isCompound;
+        return $this;
+    }
+    
+    /**
+     * Retrieve whether this discount is divided
+     *  either by sum of quantity, of applicable items
+     *  or if a max quantity is set, and isMaxPerItem is false
+     *
+     * @return bool
+     */
+    public function getIsProportional()
+    {
+        return $this->_isProportional;
+    }
+
+    /**
+     * Set whether this discount is divided
+     *
+     * @param bool
+     * @return Discount
+     */
+    public function setIsProportional($isProportional)
+    {
+        $this->_isProportional = $isProportional;
         return $this;
     }
 

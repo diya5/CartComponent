@@ -111,6 +111,7 @@ $condition4->setId(4)
            ->setCompareValue('toothbrush-1')
            ;
 
+//
 $compare2 = new DiscountConditionCompare();
 $compare2->setId(2)
          ->setOp('or') // doing a linear 'or' (not left-right) since we only have 1 condition
@@ -118,6 +119,7 @@ $compare2->setId(2)
          ->addCondition($condition2)
          ;
 
+//
 $compare3 = new DiscountConditionCompare();
 $compare3->setId(3)
          ->setOp('and') // doing a linear 'and'
@@ -145,15 +147,14 @@ $discountB->setId(2)
           ->setTo(Discount::$toSpecified)
           ->setValue('1.00')
           ->setMaxQty(1)
+          ->setIsMaxPerItem(false)
           ->setAs(Discount::$asPercent)
           ->setIsPreTax(true)
           ->setPreConditionCompare($compare3)
           ->setTargetConditionCompare($compare2)
           ;
-
-//apply the automatic discount, if it validates
-//(this example is set up to validate)
-
+          
+//apply the automatic discount, if pre-conditions validate
 if ($compare1->isValid($shipmentA)) {
     $discountA->setShipment($shipmentA);
     $cart->setDiscount($discountA);

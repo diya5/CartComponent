@@ -3,22 +3,22 @@
 class DiscountConditionCompare
 {
     /**
-     *
+     * @var int
      */
     protected $_id;
 
     /**
-     *
+     * @var string
      */
     protected $_op;
 
     /**
-     *
+     * @var bool
      */
     protected $_isNot;
 
     /**
-     *
+     * @var string
      */
     protected $_sourceEntityType;
 
@@ -31,24 +31,28 @@ class DiscountConditionCompare
     //         left OR right means return true if either left or right are true
 
     /**
-    *
-    */
+     * @var array
+     */
     protected $_conditions;
 
     /**
-     *
+     * @var DiscountCondition|DiscountConditionCompare
      */
     protected $_leftCondition;
 
     /**
-    *
-    */
+     * @var DiscountCondition|DiscountConditionCompare
+     */
     protected $_rightCondition;
 
-    static $prefix = 'compare-';
+    
+    static $prefix = 'compare-'; // prefix for array key
 
     /**
+     * Create a prefixed key, for associative arrays
      *
+     * @param int|string
+     * @return string
      */
     static function getKey($id)
     {
@@ -56,7 +60,7 @@ class DiscountConditionCompare
     }
 
     /**
-     *
+     * Constructor
      */
     public function __construct()
     {
@@ -64,7 +68,9 @@ class DiscountConditionCompare
     }
 
     /**
+     * Enable string casting
      *
+     * @return string
      */
     public function __toString()
     {
@@ -72,7 +78,9 @@ class DiscountConditionCompare
     }
 
     /**
+     * Export object properties as json string
      *
+     * @return string JSON
      */
     public function toJson()
     {
@@ -80,7 +88,9 @@ class DiscountConditionCompare
     }
 
     /**
+     * Export object as array
      *
+     * @return array
      */
     public function toArray()
     {
@@ -95,7 +105,7 @@ class DiscountConditionCompare
         }
 
         return array(
-            'id'	     => $this->getId(),
+            'id'         => $this->getId(),
             'op'         => $this->getOp(),
             'is_not'     => $this->getIsNot(),
             'left'       => $leftData,
@@ -105,7 +115,11 @@ class DiscountConditionCompare
     }
 
     /**
+     * Import object from json
      *
+     * @param string
+     * @param bool
+     * @return DiscountConditionCompare
      */
     public function importJson($json, $reset = true)
     {
@@ -214,7 +228,11 @@ class DiscountConditionCompare
     }
 
     /**
+     * Import object from stdClass
      *
+     * @param stdClass
+     * @param bool
+     * @return DiscountConditionCompare
      */
     public function importStdClass($obj, $reset = true)
     {
@@ -542,7 +560,10 @@ class DiscountConditionCompare
     }
 
     /**
+     * Set array of conditions
      *
+     * @param array
+     * @return DiscountConditionCompare
      */
     public function setConditions($conditions = array())
     {
@@ -551,7 +572,10 @@ class DiscountConditionCompare
     }
 
     /**
+     * Export array of conditions as array
      *
+     * @param DiscountConditionCompare
+     * @return array
      */
     public function getConditionsAsArray($object = null)
     {
@@ -609,12 +633,13 @@ class DiscountConditionCompare
     }
 
     /**
-    *
-    */
+     * Determine whether an object eg Item,Shipment validates this nest of conditions
+     *
+     * @param Item|Shipment|Customer
+     * @return DiscountConditionCompare
+     */
     public function isValid($object)
     {
-
-        //TODO: check sourceEntityType
 
         $left = $this->getLeftCondition();
         $right = $this->getRightCondition();
