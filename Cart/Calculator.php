@@ -9,6 +9,11 @@ class Calculator
     protected $_cart;
     
     /**
+     * @var array $discountGrid
+     */
+    protected $_discountGrid;
+    
+    /**
      * Constructor
      *
      * @param Cart
@@ -16,6 +21,7 @@ class Calculator
     public function __construct(Cart $cart = null)
     {
         $this->_cart = $cart;
+        $this->_discountGrid = false;
     }
 
     /**
@@ -117,8 +123,13 @@ class Calculator
      *
      * @return array
      */
-    public function getDiscountGrid()
+    public function getDiscountGrid($recalculate = false)
     {
+        if (is_array($this->_discountGrid) && !$recalculate) {
+            return $this->_discountGrid;
+        } else {
+            $this->_discountGrid = false;
+        }
     
         /*
         General Plan here
@@ -142,6 +153,8 @@ class Calculator
                         
         
         //*/
+        
+        //TODO: enforce maxAmount between items and shipments
 
         $itemDiscounts = array(); // d[itemKey][discountKey] = amount
         $shipmentDiscounts = array(); // d[shipmentKey][discountKey] = amount
@@ -174,12 +187,12 @@ class Calculator
             foreach($this->getCart()->getDiscounts(true) as $discountKey => $discount) {
 
                 //does this discount apply to any Items?
-                $discountHasItems = (bool) ($discount->getTo() == Discount::$toItems ||
-                    ($discount->getTo() == Discount::$toSpecified && $discount->hasItems()));
+                $discountHasItems = (bool) ($discount->isToItems() ||
+                    ($discount->isToSpecified() && $discount->hasItems()));
 
                 //does this discount apply to any Shipments?
-                $discountHasShipments = (bool) ($discount->getTo() == Discount::$toShipments ||
-                    ($discount->getTo() == Discount::$toSpecified && $discount->hasShipments()));
+                $discountHasShipments = (bool) ($discount->isToShipments() ||
+                    ($discount->isToSpecified() && $discount->hasShipments()));
 
                 //get specified Items, if applicable
                 $discountItems = ($discount->hasItems()) ? $discount->getItems() : array();
@@ -197,11 +210,11 @@ class Calculator
                 //  $_isPerItem=false, $_to=$toItems, $_as=$asFlat, portion=(flatAmount / qtySum)
                 //  $_isPerItem=true, use a function to give best discount, disperse qty's between items
                 
-                $flatAmount = ($discount->getAs() == Discount::$asFlat) ? $discount->getValue() : 0;
+                $flatAmount = ($discount->isFlat()) ? $discount->getValue() : 0;
                 
                 //get portion based on qtySum
                 $portion = 0; //($discount->getIsProportional() && ) ?  : 0;
-                if ($discount->getTo() == Discount::$toItems && $discount->getIsProportional()) {
+                if ($discount->isToItems() && $discount->getIsProportional()) {
                     //add up the quantities
                     $qtySum = 0;
                     if ($discountHasItems) {
@@ -245,8 +258,7 @@ class Calculator
                     foreach($itemAmounts as $itemKey => $itemAmount) {
 
                         //skip the item if it isnt specified in a specific discount
-                        if ($discount->getTo() == Discount::$toSpecified && 
-                            !$discount->hasItem($itemKey)) {
+                        if ($discount->isToSpecified() && !$discount->hasItem($itemKey)) {
                             continue;
                         }
                         
@@ -274,7 +286,7 @@ class Calculator
                         
                         //get single qty unit for percentage discounts
                         $percentUnitAmount = 0;
-                        if ($discount->getAs() == Discount::$asPercent) {
+                        if ($discount->isPercent()) {
                             $percentUnitAmount = $this->currency($discount->getValue() * $item->getPrice());
                         }
                         
@@ -379,8 +391,7 @@ class Calculator
                             continue;
                         }
 
-                        if ($discount->getTo() == Discount::$toSpecified &&
-                            !$discount->hasShipment($shipmentKey)) {
+                        if ($discount->isToSpecified() && !$discount->hasShipment($shipmentKey)) {
                             continue;
                         }
                         
@@ -399,9 +410,9 @@ class Calculator
                         $discountAmount = 0; //just for this shipment
                         $shipmentAmount = ($discount->getIsCompound()) ? $shipmentAmounts[$shipmentKey] : $shipment->getPrice();
 
-                        if ($discount->getAs() == Discount::$asFlat) {
+                        if ($discount->isFlat()) {
                             $discountAmount = $discount->getValue();
-                        } else if ($discount->getAs() == Discount::$asPercent) {
+                        } else if ($discount->isPercent()) {
                             $discountAmount = ($discount->getValue() * $shipmentAmount);
                         }
 
@@ -477,10 +488,14 @@ class Calculator
         )
         //*/
 
-        return array(
+        $discountGrid = array(
             'items'     => $itemDiscounts,
             'shipments' => $shipmentDiscounts,
         );
+        
+        $this->_discountGrid = $discountGrid;
+        
+        return $discountGrid;
     }
     
     /**
@@ -569,7 +584,7 @@ class Calculator
     public function getItemTotal()
     {
         //always zero if empty
-        if (!count($this->getCart()->getItems())) {
+        if (!$this->getCart()->hasItems()) {
             return $this->currency(0);
         }
         
@@ -604,7 +619,7 @@ class Calculator
      */
     public function getShipmentTotal()
     {
-        if (!count($this->getCart()->getShipments())) {
+        if (!$this->getCart()->hasShipments()) {
             return $this->currency(0);
         }
 
@@ -898,7 +913,7 @@ class Calculator
     public function getTaxableItemTotal()
     {
         $total = 0;
-        if (count($this->getCart()->getItems()) > 0) {
+        if ($this->getCart()->hasItems()) {
             foreach($this->getCart()->getItems() as $productKey => $item) {
                 if ($item->getIsTaxable()) {
                     $total += $this->currency($item->getPrice() * $item->getQty());
@@ -917,7 +932,7 @@ class Calculator
     public function getTaxableShipmentTotal()
     {
         $total = 0;
-        if (count($this->getCart()->getShipments()) > 0) {
+        if ($this->getCart()->hasShipments()) {
             foreach($this->getCart()->getShipments() as $shipmentKey => $shipment) {
                 if ($shipment->getIsTaxable()) {
                     $total += $this->currency($shipment->getPrice());
@@ -935,7 +950,7 @@ class Calculator
     public function getDiscountableShipmentTotal()
     {
         $total = 0;
-        if (count($this->getCart()->getShipments()) > 0) {
+        if ($this->getCart()->hasShipments()) {
             foreach($this->getCart()->getShipments() as $shipmentKey => $shipment) {
                 if ($shipment->getIsDiscountable()) {
                     $total += $this->currency($shipment->getPrice());
@@ -953,7 +968,7 @@ class Calculator
     public function getDiscountableItemTotal()
     {
         $total = 0;
-        if (count($this->getCart()->getItems()) > 0) {
+        if ($this->getCart()->hasItems()) {
             foreach($this->getCart()->getItems() as $itemKey => $item) {
                 if ($item->getIsDiscountable()) {
                     $total += $this->currency($item->getPrice() * $item->getQty());

@@ -65,8 +65,7 @@ $cart->setItem($itemA)
 
 //set up a single discount condition, for the shipping method
 $condition1 = new DiscountCondition();
-$condition1->setId(1)
-           ->setName('Shipping: code = ups_ground')
+$condition1->setName('Shipping: code = ups_ground')
            ->setCompareType(DiscountCondition::$compareEquals)
            ->setCompareValue('ups_ground')
            ->setSourceEntityType('shipments')
@@ -76,16 +75,14 @@ $condition1->setId(1)
 //discount conditions are wrapped by a condition compare object
 //compare objects are intended for creating trees of conditionals
 $compare1 = new DiscountConditionCompare();
-$compare1->setId(1)
-         ->setOp('or') // doing a linear 'or' (not left-right) since we only have 1 condition
+$compare1->setOp('or') // doing a linear 'or' (not left-right) since we only have 1 condition
          ->setSourceEntityType('shipments')
          ->addCondition($condition1)
          ;
 
 //set up a single discount condition, for the item sku
 $condition2 = new DiscountCondition();
-$condition2->setId(2)
-           ->setName('Item: sku = toothpaste-2')
+$condition2->setName('Item: sku = toothpaste-2')
            ->setSourceEntityType('items')
            ->setSourceEntityField('sku')
            ->setCompareType(DiscountCondition::$compareEquals)
@@ -93,8 +90,7 @@ $condition2->setId(2)
            ;
 
 $condition3 = new DiscountCondition();
-$condition3->setId(3)
-           ->setName('Item: qty >= 2')
+$condition3->setName('Item: qty >= 2')
            ->setSourceEntityType('items')
            ->setSourceEntityField('qty')
            ->setCompareType(DiscountCondition::$compareGreaterThanEquals)
@@ -103,26 +99,23 @@ $condition3->setId(3)
 
 //set up a single discount condition, for the item sku
 $condition4 = new DiscountCondition();
-$condition4->setId(4)
-           ->setName('Item: sku = toothbrush-1')
+$condition4->setName('Item: sku = toothbrush-1')
            ->setSourceEntityType('items')
            ->setSourceEntityField('sku')
            ->setCompareType(DiscountCondition::$compareEquals)
            ->setCompareValue('toothbrush-1')
            ;
 
-//
+//create 'container' for conditions
 $compare2 = new DiscountConditionCompare();
-$compare2->setId(2)
-         ->setOp('or') // doing a linear 'or' (not left-right) since we only have 1 condition
+$compare2->setOp('or') // doing a linear 'or' (not left-right) since we only have 1 condition
          ->setSourceEntityType('items')
          ->addCondition($condition2)
          ;
 
-//
+//create 'container' for conditions
 $compare3 = new DiscountConditionCompare();
-$compare3->setId(3)
-         ->setOp('and') // doing a linear 'and'
+$compare3->setOp('and') // doing a linear 'and'
          ->setSourceEntityType('items')
          ->addCondition($condition3)
          ->addCondition($condition4)

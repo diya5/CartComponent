@@ -3,11 +3,6 @@
 class DiscountCondition 
 {
     /**
-     * @var int
-     */
-    protected $_id;
-
-    /**
      * @var string
      */
     protected $_name;
@@ -47,9 +42,6 @@ class DiscountCondition
      */
     protected $_isNot; // return opposite of result
 
-    static $prefix = 'condition-';
-
-
     // array key values
     static $compareGreaterThan = 'gt';
     static $compareLessThan = 'lt';
@@ -69,21 +61,12 @@ class DiscountCondition
     }
 
     /**
-     * Get key for associative arrays
-     */
-    static function getKey($id)
-    {
-        return self::$prefix . $id;
-    }
-
-    /**
      * Reset/init default values
      *
      * @return DiscountCondition
      */
     public function reset()
     {
-        $this->_id = 0;
         $this->_name = '';
         $this->_compareType = '';
         $this->_compareValue = '';
@@ -123,7 +106,6 @@ class DiscountCondition
     public function toArray()
     {
         return array(
-            'id'                       => $this->getId(),
             'name'                     => $this->getName(),
             'compare_type'             => $this->getCompareType(),
             'is_not'                   => $this->getIsNot(),
@@ -148,8 +130,7 @@ class DiscountCondition
         }
 
         $data = @ (array) json_decode($json);
-
-        $id = isset($data['id']) ? $data['id'] : '';
+        
         $name = isset($data['name']) ? $data['name'] : '';
         $compareType = isset($data['compare_type']) ? $data['compare_type'] : '';
         $isNot = isset($data['is_not']) ? $data['is_not'] : false;
@@ -158,8 +139,7 @@ class DiscountCondition
         $sourceEntityType = isset($data['source_entity_type']) ? $data['source_entity_type'] : '';
         $sourceEntityField = isset($data['source_entity_field']) ? $data['source_entity_field'] : '';
         $sourceEntityFieldType = isset($data['source_entity_field_type']) ? $data['source_entity_field_type'] : '';
-
-        $this->_id = $id;
+        
         $this->_name = $name;
         $this->_compareType = $compareType;
         $this->_isNot = $isNot;
@@ -184,8 +164,7 @@ class DiscountCondition
         if ($reset) {
             $this->reset();
         }
-
-        $id = isset($obj->id) ? $obj->id : '';
+        
         $name = isset($obj->name) ? $obj->name : '';
         $compareType = isset($obj->compare_type) ? $obj->compare_type : '';
         $isNot = isset($obj->is_not) ? $obj->is_not : false;
@@ -193,8 +172,7 @@ class DiscountCondition
         $sourceEntityType = isset($obj->source_entity_type) ? $obj->source_entity_type : '';
         $sourceEntityField = isset($obj->source_entity_field) ? $obj->source_entity_field : '';
         $sourceEntityFieldType = isset($obj->source_entity_field_type) ? $obj->source_entity_field_type : '';
-
-        $this->_id = $id;
+        
         $this->_name = $name;
         $this->_compareType = $compareType;
         $this->_isNot = $isNot;
@@ -214,7 +192,6 @@ class DiscountCondition
      */
     public function importEntity($entity)
     {
-        $id = $entity->getId();
         $name = $entity->getName();
         $compareType = $entity->getCompareType();
         $isNot = $entity->getIsNot();
@@ -223,8 +200,7 @@ class DiscountCondition
         $sourceEntityType = $entity->getSourceEntityType();
         $sourceEntityField = $entity->getSourceEntityField();
         $sourceEntityFieldType = $entity->getSourceEntityFieldType();
-
-        $this->_id = $id;
+        
         $this->_name = $name;
         $this->_compareType = $compareType;
         $this->_isNot = $isNot;
@@ -323,24 +299,9 @@ class DiscountCondition
     }
 
     /**
-     * Getter
-     */
-    public function getId()
-    {
-        return $this->_id;
-    }
-
-    /**
-     * Setter
-     */
-    public function setId($id)
-    {
-        $this->_id = $id;
-        return $this;
-    }
-
-    /**
-     * Getter
+     * Get the name set on the condition
+     *
+     * @return string
      */
     public function getName()
     {
@@ -348,7 +309,10 @@ class DiscountCondition
     }
 
     /**
-     * Setter
+     * Set the name of the condition
+     *
+     * @param string
+     * @return DiscountCondition
      */
     public function setName($name)
     {

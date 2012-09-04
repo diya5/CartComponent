@@ -3,11 +3,6 @@
 class DiscountConditionCompare
 {
     /**
-     * @var int
-     */
-    protected $_id;
-
-    /**
      * @var string
      */
     protected $_op;
@@ -45,20 +40,6 @@ class DiscountConditionCompare
      */
     protected $_rightCondition;
 
-    
-    static $prefix = 'compare-'; // prefix for array key
-
-    /**
-     * Create a prefixed key, for associative arrays
-     *
-     * @param int|string
-     * @return string
-     */
-    static function getKey($id)
-    {
-        return self::$prefix . $id;
-    }
-
     /**
      * Constructor
      */
@@ -94,18 +75,17 @@ class DiscountConditionCompare
      */
     public function toArray()
     {
-        $leftData = array();
+        $leftData = null;
         if (is_object($this->getLeftCondition())) {
             $leftData = $this->getLeftCondition()->toArray();
         }
 
-        $rightData = array();
+        $rightData = null;
         if (is_object($this->getRightCondition())) {
             $rightData = $this->getRightCondition()->toArray();
         }
 
         return array(
-            'id'         => $this->getId(),
             'op'         => $this->getOp(),
             'is_not'     => $this->getIsNot(),
             'left'       => $leftData,
@@ -128,8 +108,7 @@ class DiscountConditionCompare
         }
 
         $data = @ (array) json_decode($json);
-
-        $id = isset($data['id']) ? $data['id'] : 0;
+        
         $op = isset($data['op']) ? $data['op'] : '';
         $isNot = (bool) isset($data['is_not']) ? $data['is_not'] : false;
 
@@ -144,20 +123,24 @@ class DiscountConditionCompare
             if (isset($leftData['op']) || isset($leftData->op)) {
 
                 //we have DiscountConditionCompare data
-                $left = new DiscountConditionCompare();
+                
                 if ($leftData instanceof stdClass) {
+                    $left = new DiscountConditionCompare();
                     $left->importStdClass($leftData);
                 } else if (is_array($leftData)) {
+                    $left = new DiscountConditionCompare();
                     $left->importJson(json_encode($leftData));
                 }
                 
             } else {
 
                 //we have DiscountCondition data
-                $left = new DiscountCondition();
+                
                 if ($leftData instanceof stdClass) {
+                    $left = new DiscountCondition();
                     $left->importStdClass($leftData);
                 } else if (is_array($leftData)) {
+                    $left = new DiscountCondition();
                     $left->importJson(json_encode($leftData));
                 }
 
@@ -168,56 +151,59 @@ class DiscountConditionCompare
             if (isset($rightData['op']) || isset($rightData->op)) {
 
                 //we have DiscountConditionCompare data
-                $right = new DiscountConditionCompare();
+                
                 if ($rightData instanceof stdClass) {
+                    $right = new DiscountConditionCompare();
                     $right->importStdClass($rightData);
                 } else if (is_array($rightData)) {
+                    $right = new DiscountConditionCompare();
                     $right->importJson(json_encode($rightData));
                 }
 
             } else {
 
                 //we have DiscountCondition data
-                $right = new DiscountCondition();
+                
                 if ($rightData instanceof stdClass) {
+                    $right = new DiscountCondition();
                     $right->importStdClass($rightData);
                 } else if (is_array($rightData)) {
+                    $right = new DiscountCondition();
                     $right->importJson(json_encode($rightData));
                 }
             }
         }
 
         if ((is_array($conditions) || $conditions instanceof stdClass) && count($conditions) > 0) {
-            foreach($conditions as $key => $data) {
-                if (is_int(strpos($key, DiscountConditionCompare::$prefix))) {
+            foreach($conditions as $data) {
+                if (isset($data['op'])) {
 
                     //we have DiscountConditionCompare data
                     $compare = new DiscountConditionCompare();
                     if ($data instanceof stdClass) {
                         $compare->importStdClass($data);
-                        $this->addCondition($key, $compare);
+                        $this->addCondition($compare);
                     } else if (is_array($data)) {
                         $compare->importJson(json_encode($data));
-                        $this->addCondition($key, $compare);
+                        $this->addCondition($compare);
                     }
                     
-                } else if (is_int(strpos($key, DiscountCondition::$prefix))) {
+                } else {
 
                     //we have DiscountCondition data
                     $condition = new DiscountCondition();
                     if ($data instanceof stdClass) {
                         $condition->importStdClass($data);
-                        $this->addCondition($key, $condition);
+                        $this->addCondition($condition);
                     } else if (is_array($data)) {
                         $condition->importJson(json_encode($data));
-                        $this->addCondition($key, $condition);
+                        $this->addCondition($condition);
                     }
                 }
             }
         }
 
-        $this->setId($id)
-             ->setOp($op)
+        $this->setOp($op)
              ->setIsNot($isNot)
              ->setLeftCondition($left)
              ->setRightCondition($right)
@@ -239,8 +225,7 @@ class DiscountConditionCompare
         if ($reset) {
             $this->reset();
         }
-
-        $id = isset($obj->id) ? $obj->id : 0;
+        
         $op = isset($obj->op) ? $obj->op : '';
         $isNot = (bool) isset($obj->is_not) ? $obj->is_not : false;
 
@@ -256,20 +241,24 @@ class DiscountConditionCompare
             if (isset($leftData['op']) || isset($leftData->op)) {
 
                 //we have DiscountConditionCompare data
-                $left = new DiscountConditionCompare();
+                
                 if ($leftData instanceof stdClass) {
+                    $left = new DiscountConditionCompare();
                     $left->importStdClass($leftData);
                 } else if (is_array($leftData)) {
+                    $left = new DiscountConditionCompare();
                     $left->importJson(json_encode($leftData));
                 }
                 
             } else {
 
                 //we have DiscountCondition data
-                $left = new DiscountCondition();
+                
                 if ($leftData instanceof stdClass) {
+                    $left = new DiscountCondition();
                     $left->importStdClass($leftData);
                 } else if (is_array($leftData)) {
+                    $left = new DiscountCondition();
                     $left->importJson(json_encode($leftData));
                 }
 
@@ -280,28 +269,33 @@ class DiscountConditionCompare
             if (isset($rightData['op']) || isset($rightData->op)) {
 
                 //we have DiscountConditionCompare data
-                $right = new DiscountConditionCompare();
+                
                 if ($rightData instanceof stdClass) {
+                    $right = new DiscountConditionCompare();
                     $right->importStdClass($rightData);
                 } else if (is_array($rightData)) {
+                    $right = new DiscountConditionCompare();
                     $right->importJson(json_encode($rightData));
                 }
 
             } else {
 
                 //we have DiscountCondition data
-                $right = new DiscountCondition();
+                
                 if ($rightData instanceof stdClass) {
+                    $right = new DiscountCondition();
                     $right->importStdClass($rightData);
                 } else if (is_array($rightData)) {
+                    $right = new DiscountCondition();
                     $right->importJson(json_encode($rightData));
                 }
             }
         }
 
         if ((is_array($conditions) || $conditions instanceof stdClass) && count($conditions) > 0) {
-            foreach($conditions as $key => $data) {
-                if (is_int(strpos($key, DiscountConditionCompare::$prefix))) {
+            foreach($conditions as $data) {
+                
+                if (isset($data->op) || (is_array($data) && isset($data['op']))) {
 
                     //we have DiscountConditionCompare data
                     $compare = new DiscountConditionCompare();
@@ -313,7 +307,7 @@ class DiscountConditionCompare
                         $this->addCondition($compare);
                     }
                     
-                } else if (is_int(strpos($key, DiscountCondition::$prefix))) {
+                } else {
 
                     //we have DiscountCondition data
                     $condition = new DiscountCondition();
@@ -328,13 +322,12 @@ class DiscountConditionCompare
             }
         }
 
-        $this->setId($id)
-            ->setOp($op)
-            ->setIsNot($isNot)
-            ->setLeftCondition($left)
-            ->setRightCondition($right)
-            ->setConditions($conditions)
-            ;
+        $this->setOp($op)
+             ->setIsNot($isNot)
+             ->setLeftCondition($left)
+             ->setRightCondition($right)
+             ->setConditions($conditions)
+             ;
 
         return $this;
     }
@@ -346,36 +339,13 @@ class DiscountConditionCompare
      */
     public function reset()
     {
-        $this->setId(0)
-            ->setOp('')
-            ->setIsNot(false)
-            ->setLeftCondition(null)
-            ->setRightCondition(null)
-            ->setConditions(array())
-            ;
+        $this->setOp('')
+             ->setIsNot(false)
+             ->setLeftCondition(null)
+             ->setRightCondition(null)
+             ->setConditions(array())
+             ;
 
-        return $this;
-    }
-
-    /**
-     * Return the Id
-     *
-     * @return int|string
-     */
-    public function getId()
-    {
-        return $this->_id;
-    }
-
-    /**
-     * Set your Id
-     *
-     * @param int|string
-     * @return DiscountConditionCompare
-     */
-    public function setId($id)
-    {
-        $this->_id = $id;
         return $this;
     }
 
@@ -514,40 +484,13 @@ class DiscountConditionCompare
             !$condition instanceof DiscountConditionCompare) {
             return false;
         }
-
-        $key = DiscountCondition::getKey($condition->getId());
-        if ($condition instanceof DiscountConditionCompare) {
-            $key = DiscountConditionCompare::getKey($condition->getId());
-        }
-
-        $this->_conditions[$key] = $condition;
+        
+        $this->_conditions[] = $condition;
         return $this;
     }
 
-    /**
-     * Retrieve condition by key
-     *
-     * @param string
-     * @return DiscountCondtion|false
-     */
-    public function getCondition($key)
-    {
-        return isset($this->_conditions[$key]) ? $this->_conditions[$key] : false;
-    }
-
-    /**
-     * Remove DiscountCondition by key
-     *
-     * @param string
-     * @return DiscountConditionCompare
-     */
-    public function removeCondition($key)
-    {
-        if (isset($this->_conditions[$key])) {
-            unset($this->_conditions[$key]);
-        }
-        return $this;
-    }
+    
+    //removeCondition(), getCondition() not really possible after removing key from arrays
 
     /**
      * Getter for conditions array
@@ -588,21 +531,9 @@ class DiscountConditionCompare
         if (count($object->getConditions()) > 0) {
 
             //get linear tree
-            foreach($object->getConditions() as $key => $tmpObject) {
+            foreach($object->getConditions() as $tmpObject) {
 
-                if (is_int(strpos($key, DiscountCondition::$prefix))) {
-                    
-                    $newObject = new DiscountCondition();
-                    if ($tmpObject instanceof DiscountCondition) {
-                        $newObject = $tmpObject;
-                    } else if ($tmpObject instanceof stdClass) {
-                        $newObject->importStdClass($tmpObject);
-                    } else if (is_array($tmpObject)) {
-                        $newObject->importJson(json_encode($tmpObject));
-                    }
-                    $conditions[$key] = $newObject->toArray();
-
-                } else if (is_int(strpos($key, DiscountConditionCompare::$prefix))) {
+               if ($tmpObject instanceof DiscountConditionCompare) {
                     
                     $newObject = new DiscountConditionCompare();
                     if ($tmpObject instanceof DiscountConditionCompare) {
@@ -612,21 +543,34 @@ class DiscountConditionCompare
                     } else if (is_array($tmpObject)) {
                         $newObject->importJson(json_encode($tmpObject));
                     }
-                    $conditions[$key] = $newObject->getConditionsAsArray($newObject);
+                    $conditions[] = $newObject->getConditionsAsArray($newObject);
 
+                } else {
+                    
+                    $newObject = new DiscountCondition();
+                    if ($tmpObject instanceof DiscountCondition) {
+                        $newObject = $tmpObject;
+                    } else if ($tmpObject instanceof stdClass) {
+                        $newObject->importStdClass($tmpObject);
+                    } else if (is_array($tmpObject)) {
+                        $newObject->importJson(json_encode($tmpObject));
+                    }
+                    $conditions[] = $newObject->toArray();
                 }
             }
 
-        } else if (is_object($object->getLeftCondition()) && is_object($object->getRightCondition())) {
-            //get left-right tree
-            $left = $object->getLeftCondition();
-            $right = $object->getRightCondition();
-
-            $tmpLeftData = $left->toArray();
-            $tmpRightData = $right->toArray();
-
-            $conditions['left'] = isset($tmpLeftData['op']) ? $this->getConditionsAsArray($left) : $left->toArray();
-            $conditions['right'] = isset($tmpRightData['op']) ? $this->getConditionsAsArray($right) : $right->toArray();
+        } else if (is_object($object->getLeftCondition()) || is_object($object->getRightCondition())) {
+            
+            $conditions['left'] = null;
+            if (!is_null($object->getLeftCondition())) {
+                $conditions['left'] = $object->getLeftCondition()->toArray();
+            }
+            
+            $conditions['right'] = null;
+            if (!is_null($object->getRightCondition())) {
+                $conditions['right'] = $object->getRightCondition()->toArray();
+            }
+        
         }
 
         return $conditions;

@@ -190,12 +190,12 @@ class Discount
      */
     public function toArray()
     {
-        $preConditionCompareData = array();
+        $preConditionCompareData = null;
         if (is_object($this->getPreConditionCompare())) {
             $preConditionCompareData = $this->getPreConditionCompare()->toArray();
         }
 
-        $targetConditionCompareData = array();
+        $targetConditionCompareData = null;
         if (is_object($this->getTargetConditionCompare())) {
             $targetConditionCompareData = $this->getTargetConditionCompare()->toArray();
         }
@@ -247,8 +247,8 @@ class Discount
         $as = ($as == self::$asFlat) ? self::$asFlat : self::$asPercent;
 
         $to = isset($data['to']) ? $data['to'] : '';
-        if (!in_array($to, array(self::$toSpecified, 'items', 'shipments'))) {
-            $to = 'items';
+        if (!in_array($to, array(self::$toSpecified, self::$toItems, self::$toShipments))) {
+            $to = self::$toItems;
         }
 
         $value = isset($data['value']) ? $data['value'] : 0;
@@ -281,15 +281,21 @@ class Discount
             }
         }
 
-        $preConditionObj = isset($data['pre_conditions']) ? $data['pre_conditions'] : new stdClass();
-        $targetConditionObj = isset($data['target_conditions']) ? $data['target_conditions'] : new stdClass();
+        $preConditionObj = isset($data['pre_conditions']) ? $data['pre_conditions'] : null;
+        $targetConditionObj = isset($data['target_conditions']) ? $data['target_conditions'] : null;
 
-        $preCondition = new DiscountConditionCompare();
-        $preCondition->importJson(json_encode($preConditionObj));
-
-        $targetCondition = new DiscountConditionCompare();
-        $targetCondition->importJson(json_encode($targetConditionObj));
-
+        $preCondition = null;
+        if (!is_null($preConditionObj)) {
+            $preCondition = new DiscountConditionCompare();
+            $preCondition->importJson(json_encode($preConditionObj));
+        }
+        
+        $targetCondition = null;
+        if (!is_null($targetConditionObj)) {
+            $targetCondition = new DiscountConditionCompare();
+            $targetCondition->importJson(json_encode($targetConditionObj));
+        }
+            
         $couponCode = isset($data['coupon_code']) ? $data['coupon_code'] : '';
         $isAuto = isset($data['is_auto']) ? $data['is_auto'] : false;
 
@@ -370,17 +376,21 @@ class Discount
         $preConditionObj = isset($obj->pre_conditions) ? $obj->pre_conditions : new stdClass();
         $targetConditionObj = isset($obj->target_conditions) ? $obj->target_conditions : new stdClass();
 
-        $preCondition = new DiscountConditionCompare();
+        $preCondition = null;
         if ($preConditionObj instanceof stdClass) {
+            $preCondition = new DiscountConditionCompare();
             $preCondition->importStdClass($preConditionObj);
         } else if (is_array($preConditionObj)) {
+            $preCondition = new DiscountConditionCompare();
             $preCondition->importJson(json_encode($preConditionObj));
         }
 
-        $targetCondition = new DiscountConditionCompare();
+        $targetCondition = null;
         if ($targetConditionObj instanceof stdClass) {
+            $targetCondition = new DiscountConditionCompare();
             $targetCondition->importStdClass($targetConditionObj);
         } else if (is_array($targetConditionObj)) {
+            $targetCondition = new DiscountConditionCompare();
             $targetCondition->importJson(json_encode($targetConditionObj));
         }
 
@@ -513,6 +523,50 @@ class Discount
         $this->_targetConditionCompare = null;
 
         return $this;
+    }
+    
+    /**
+     * Retrieve whether this discount is flat
+     *
+     * @return bool
+     */
+    public function isFlat()
+    {
+        return ($this->getAs() == self::$asFlat);
+    }
+    
+    /**
+     * Retrieve whether this discount is a percentage
+     *
+     * @return bool
+     */
+    public function isPercent()
+    {
+        return ($this->getAs() == self::$asPercent);
+    }
+    
+    /**
+     * Retrieve whether this discount applies to items
+     */
+    public function isToItems()
+    {
+        return ($this->getTo() == self::$toItems);
+    }
+    
+    /**
+     * Retrieve whether this discount applies to shipments
+     */
+    public function isToShipments()
+    {
+        return ($this->getTo() == self::$toShipments);
+    }
+    
+    /**
+     * Retrieve whether this discount applies to specific items,shipments
+     */
+    public function isToSpecified()
+    {
+        return ($this->getTo() == self::$toSpecified);
     }
 
     /**
